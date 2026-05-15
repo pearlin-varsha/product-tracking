@@ -1,4 +1,5 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from models import product
 from sqlalchemy import text
 from utils.db import initialise_db, insert_product,update_products,delete_products,get_products
 
@@ -14,28 +15,28 @@ def get_product():
     else:
         return {"message": "failed"}
 
-@app.post("/add-products")
-def add_products(name : str , quantity : int , price : int , description : str):
+@app.post("/product/add/")
+def add_product(product: product):
     inserted=False
-    inserted = insert_product(pg_connection,name, quantity,price, description)
+    inserted = insert_product(pg_connection,product.name, product.quantity,product.price, product.description)
     if inserted:
         return {"message":"added successfully"}
     else:
         return {"message":"insertion failed"}
 
-@app.put("/update-product/{product_id}")
-def update_product(product_id : str , price:int):
+@app.put("/product/update/{product_id}")
+def update_product(product: product):
     updated=False
-    updated = update_products(pg_connection,product_id,price)
+    updated = update_products(pg_connection,product.product_id,product.price)
     if updated:
         return{"Message ":" product updated successfully"}
     else:
         return{"Message ":" update failed"}
 
 @app.delete("/delete-product/{product_id}")
-def delete_product(product_id:str):
+def delete_product(product: product):
     deleted=False
-    deleted=delete_products(pg_connection,product_id)
+    deleted=delete_products(pg_connection,product.product_id)
     if deleted:
         return{"message":"product deleted successfully"}
     else:

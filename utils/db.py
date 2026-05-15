@@ -4,11 +4,11 @@ import logging
 
 DATABASE_URL = "postgresql://pearlinvarsha:pearl%4012@localhost:5432/tracker"
 
+
 def initialise_db():
     engine = create_engine(DATABASE_URL)
     connection = engine.connect()
     logging.info("connected successfully")
-    print('a')
     return connection
 
 def get_products(connection):
@@ -43,7 +43,8 @@ def insert_product(conenction,name,quantity,price,description):
     except Exception as e:
         logging.error(e)
         return False
-    
+
+
 def update_products(connection,id,price):
     try:
         connection.execute(
