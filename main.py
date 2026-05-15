@@ -1,59 +1,42 @@
 from fastapi import FastAPI
 from sqlalchemy import text
-from utils.db import engine
+from utils.db import initialise_db, insert_product,update_products,delete_products,get_products
 
 app = FastAPI()
 
-@app.get("/")
-def get_products():
-    with engine.connect() as conn:
-        result = conn.execute(
-            text("select * from products")
-        )
-        data = [dict(row._mapping) for row in result]
+pg_connection = initialise_db()
 
-    return data
+@app.get("/")
+def get_product():
+    data = get_products(pg_connection)
+    if data is not False:
+        return data
+    else:
+        return {"message": "failed"}
 
 @app.post("/add-products")
 def add_products(name : str , quantity : int , price : int , description : str):
-    with engine.connect() as conn:
-        conn.execute(text("""
-                          insert into products
-                          (name,quantity,price,description) 
-                          values
-                          (:name, :quantity, :price, :description)
-                          """),
-                          {
-                              "name":name,
-                              "quantity":quantity,
-                              "price":price,
-                              "description":description
-                          }
-                    )
-        conn.commit()
-    return{"message":"added successfully"}
+    inserted=False
+    inserted = insert_product(pg_connection,name, quantity,price, description)
+    if inserted:
+        return {"message":"added successfully"}
+    else:
+        return {"message":"insertion failed"}
 
 @app.put("/update-product/{product_id}")
-def update_product(product_id : int , price:int):
-    with engine.connect() as conn:
-        conn.execute(
-            text("update products set price =:price where id = :id"),
-            {
-                "price":price,
-                "id":product_id
-            }
-        )
-        conn.commit()
-    return{"Message ":" product updated successfully"}
+def update_product(product_id : str , price:int):
+    updated=False
+    updated = update_products(pg_connection,product_id,price)
+    if updated:
+        return{"Message ":" product updated successfully"}
+    else:
+        return{"Message ":" update failed"}
 
 @app.delete("/delete-product/{product_id}")
-def delete_product(product_id:int):
-    with engine.connect() as conn:
-        conn.execute(
-            text("delete from products where id = :id"),
-            {
-                "id":product_id
-            }
-        )
-        conn.commit()
-    return{"message":"product deleted successfully"}
+def delete_product(product_id:str):
+    deleted=False
+    deleted=delete_products(pg_connection,product_id)
+    if deleted:
+        return{"message":"product deleted successfully"}
+    else:
+        return{"message":"product deletion failed"}
